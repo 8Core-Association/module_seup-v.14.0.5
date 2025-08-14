@@ -156,6 +156,8 @@ NEXTCLOUD_USERNAME=Nextcloud korisničko ime
 NEXTCLOUD_USERNAMETooltip=Korisničko ime za pristup Nextcloud API-ju
 NEXTCLOUD_PASSWORD=Nextcloud lozinka/token
 NEXTCLOUD_PASSWORDTooltip=App password ili API token za Nextcloud pristup
+NEXTCLOUD_ENABLED=Omogući Nextcloud integraciju
+NEXTCLOUD_ENABLEDTooltip=Aktiviraj sinkronizaciju dokumenata s Nextcloud serverom
 
 ; Document sources
 DocumentSource=Izvor

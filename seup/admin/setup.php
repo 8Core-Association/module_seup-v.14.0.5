@@ -138,6 +138,9 @@ $item->cssClass = 'minwidth300';
 // Nextcloud Enable/Disable
 $formSetup->newItem('NEXTCLOUD_ENABLED')->setAsYesNo();
 
+// Nextcloud Enable/Disable
+$formSetup->newItem('NEXTCLOUD_ENABLED')->setAsYesNo();
+
 // Test connection button (will be handled by JavaScript)
 $item = $formSetup->newItem('NEXTCLOUD_TEST');
 $item->fieldOverride = '<button type="button" id="testNextcloudBtn" class="button">Test Connection</button><div id="testResult" style="margin-top: 10px;"></div>';
