@@ -44,6 +44,11 @@ function seupAdminPrepareHead()
 	$head[$h][2] = 'settings';
 	$h++;
 
+	$head[$h][0] = dol_buildpath("/seup/admin/nextcloud.php", 1);
+	$head[$h][1] = $langs->trans("NextcloudIntegration");
+	$head[$h][2] = 'nextcloud';
+	$h++;
+
 	/*
 	$head[$h][0] = dol_buildpath("/seup/admin/myobject_extrafields.php", 1);
 	$head[$h][1] = $langs->trans("ExtraFields");

@@ -166,3 +166,25 @@ ViewInNextcloud=Otvori u Nextcloud
 SyncWithNextcloud=Sinkroniziraj s Nextcloud
 NextcloudSyncSuccess=Uspješno sinkronizirano s Nextcloud
 NextcloudSyncError=Greška pri sinkronizaciji s Nextcloud
+
+# Admin configuration
+NextcloudIntegration=Nextcloud Integracija
+NextcloudConfigurationPage=Konfiguracija Nextcloud integracije za SEUP modul
+EnableNextcloudIntegration=Omogući Nextcloud integraciju
+EnableNextcloudIntegrationTooltip=Omogućuje sinkronizaciju dokumenata s Nextcloud serverom
+NextcloudURL=Nextcloud URL
+NextcloudURLTooltip=URL vašeg Nextcloud servera (npr. https://cloud.example.com)
+NextcloudUsername=Nextcloud korisničko ime
+NextcloudUsernameTooltip=Korisničko ime za pristup Nextcloud API-ju
+NextcloudPassword=Nextcloud lozinka/token
+NextcloudPasswordTooltip=App password ili API token za Nextcloud pristup (generirajte u Nextcloud Settings > Security)
+TestConnection=Testiraj vezu
+TestNextcloudConnection=Testiraj Nextcloud vezu
+NextcloudConnectionSuccess=Nextcloud veza uspješna
+NextcloudConnectionFailed=Nextcloud veza neuspješna
+NextcloudConnectionError=Greška pri povezivanju s Nextcloud
+NextcloudStatus=Nextcloud status
+Configured=Konfigurirano
+PartiallyConfigured=Djelomično konfigurirano
+FilesFound=datoteka pronađeno
+ErrorInvalidURL=Neispravan URL format
