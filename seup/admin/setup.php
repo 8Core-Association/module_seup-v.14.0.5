@@ -135,6 +135,12 @@ $item->fieldAttr['placeholder'] = 'app-password-or-token';
 $item->fieldAttr['type'] = 'password';
 $item->cssClass = 'minwidth300';
 
+// Nextcloud Enable/Disable
+$formSetup->newItem('NEXTCLOUD_ENABLED')->setAsYesNo();
+
+// Test connection button (will be handled by JavaScript)
+$item = $formSetup->newItem('NEXTCLOUD_TEST');
+$item->fieldOverride = '<button type="button" id="testNextcloudBtn" class="button">Test Connection</button><div id="testResult" style="margin-top: 10px;"></div>';
 // Setup conf for selection of a simple textarea input but we replace the text of field title
 $item = $formSetup->newItem('SEUP_MYPARAM3');
 $item->nameText = $item->getNameText().' more html text ';
@@ -229,6 +235,46 @@ if (versioncompare(explode('.', DOL_VERSION), array(15)) < 0 && $action == 'upda
 }
 
 include DOL_DOCUMENT_ROOT.'/core/actions_setmoduleoptions.inc.php';
+
+// Handle Nextcloud test connection
+if ($action == 'test_nextcloud') {
+    header('Content-Type: application/json');
+    ob_end_clean();
+    
+    $test_url = GETPOST('url', 'alpha');
+    $test_username = GETPOST('username', 'alpha');
+    $test_password = GETPOST('password', 'alpha');
+    
+    if (empty($test_url) || empty($test_username) || empty($test_password)) {
+        echo json_encode(['success' => false, 'error' => 'Missing configuration parameters']);
+        exit;
+    }
+    
+    // Test connection
+    $url = $test_url . '/remote.php/dav/files/' . $test_username . '/';
+    
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CUSTOMREQUEST => 'PROPFIND',
+        CURLOPT_USERPWD => $test_username . ':' . $test_password,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_HTTPHEADER => ['Depth: 1']
+    ]);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 207) {
+        echo json_encode(['success' => true, 'message' => 'Nextcloud connection successful!']);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Connection failed (HTTP ' . $httpCode . ')']);
+    }
+    exit;
+}
 
 if ($action == 'updateMask') {
 	$maskconst = GETPOST('maskconst', 'aZ09');
@@ -369,6 +415,48 @@ if (!empty($formSetup->items)) {
 	print '<br>';
 }
 
+// Add JavaScript for test connection
+print '<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const testBtn = document.getElementById("testNextcloudBtn");
+    const testResult = document.getElementById("testResult");
+    
+    if (testBtn) {
+        testBtn.addEventListener("click", function() {
+            this.disabled = true;
+            this.textContent = "Testing...";
+            testResult.innerHTML = "";
+            
+            const formData = new FormData();
+            formData.append("action", "test_nextcloud");
+            formData.append("token", "'.newToken().'");
+            formData.append("url", document.querySelector("input[name=\'NEXTCLOUD_URL\']").value);
+            formData.append("username", document.querySelector("input[name=\'NEXTCLOUD_USERNAME\']").value);
+            formData.append("password", document.querySelector("input[name=\'NEXTCLOUD_PASSWORD\']").value);
+            
+            fetch("", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    testResult.innerHTML = "<div class=\'ok\'><i class=\'fa fa-check\'></i> " + data.message + "</div>";
+                } else {
+                    testResult.innerHTML = "<div class=\'error\'><i class=\'fa fa-times\'></i> " + data.error + "</div>";
+                }
+            })
+            .catch(error => {
+                testResult.innerHTML = "<div class=\'error\'><i class=\'fa fa-times\'></i> Connection failed</div>";
+            })
+            .finally(() => {
+                this.disabled = false;
+                this.textContent = "Test Connection";
+            });
+        });
+    }
+});
+</script>';
 
 foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 	if (!empty($myTmpObjectArray['includerefgeneration'])) {

@@ -143,7 +143,7 @@ class modSEUP extends DolibarrModules
 		$this->dirs = array("/seup/temp");
 
 		// Config pages. Put here list of php page, stored into seup/admin directory, to use to setup module.
-		$this->config_page_url = array("setup.php@seup", "nextcloud.php@seup");
+		$this->config_page_url = array("setup.php@seup");
 
 		// Dependencies
 		// A condition to hide module
