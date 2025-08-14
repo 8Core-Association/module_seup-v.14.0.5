@@ -110,16 +110,6 @@ if (!$user->admin) {
 
 // Enter here all parameters in your setup page
 
-// Setup conf for selection of an URL
-$item = $formSetup->newItem('SEUP_MYPARAM1');
-$item->fieldAttr['placeholder'] = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'];
-$item->cssClass = 'minwidth500';
-
-// Setup conf for selection of a simple string input
-$item = $formSetup->newItem('SEUP_MYPARAM2');
-$item->defaultFieldValue = 'default value';
-$item->fieldAttr['placeholder'] = 'A placeholder here';
-
 // Nextcloud configuration
 $item = $formSetup->newItem('NEXTCLOUD_URL');
 $item->defaultFieldValue = 'https://your-nextcloud.com';
@@ -138,76 +128,9 @@ $item->cssClass = 'minwidth300';
 // Nextcloud Enable/Disable
 $formSetup->newItem('NEXTCLOUD_ENABLED')->setAsYesNo();
 
-// Nextcloud Enable/Disable
-$formSetup->newItem('NEXTCLOUD_ENABLED')->setAsYesNo();
-
 // Test connection button (will be handled by JavaScript)
 $item = $formSetup->newItem('NEXTCLOUD_TEST');
 $item->fieldOverride = '<button type="button" id="testNextcloudBtn" class="button">Test Connection</button><div id="testResult" style="margin-top: 10px;"></div>';
-// Setup conf for selection of a simple textarea input but we replace the text of field title
-$item = $formSetup->newItem('SEUP_MYPARAM3');
-$item->nameText = $item->getNameText().' more html text ';
-
-// Setup conf for a selection of a Thirdparty
-$item = $formSetup->newItem('SEUP_MYPARAM4');
-$item->setAsThirdpartyType();
-
-// Setup conf for a selection of a boolean
-$formSetup->newItem('SEUP_MYPARAM5')->setAsYesNo();
-
-// Setup conf for a selection of an Email template of type thirdparty
-$formSetup->newItem('SEUP_MYPARAM6')->setAsEmailTemplate('thirdparty');
-
-// Setup conf for a selection of a secured key
-//$formSetup->newItem('SEUP_MYPARAM7')->setAsSecureKey();
-
-// Setup conf for a selection of a Product
-$formSetup->newItem('SEUP_MYPARAM8')->setAsProduct();
-
-// Add a title for a new section
-$formSetup->newItem('NewSection')->setAsTitle();
-
-$TField = array(
-	'test01' => $langs->trans('test01'),
-	'test02' => $langs->trans('test02'),
-	'test03' => $langs->trans('test03'),
-	'test04' => $langs->trans('test04'),
-	'test05' => $langs->trans('test05'),
-	'test06' => $langs->trans('test06'),
-);
-
-// Setup conf for a simple combo list
-$formSetup->newItem('SEUP_MYPARAM9')->setAsSelect($TField);
-
-// Setup conf for a multiselect combo list
-$item = $formSetup->newItem('SEUP_MYPARAM10');
-$item->setAsMultiSelect($TField);
-$item->helpText = $langs->transnoentities('SEUP_MYPARAM10');
-
-// Setup conf for a category selection
-$formSetup->newItem('SEUP_CATEGORY_ID_XXX')->setAsCategory('product');
-
-// Setup conf SEUP_MYPARAM10
-$item = $formSetup->newItem('SEUP_MYPARAM10');
-$item->setAsColor();
-$item->defaultFieldValue = '#FF0000';
-//$item->fieldValue = '';
-//$item->fieldAttr = array() ; // fields attribute only for compatible fields like input text
-//$item->fieldOverride = false; // set this var to override field output will override $fieldInputOverride and $fieldOutputOverride too
-//$item->fieldInputOverride = false; // set this var to override field input
-//$item->fieldOutputOverride = false; // set this var to override field output
-
-$item = $formSetup->newItem('SEUP_MYPARAM11')->setAsHtml();
-$item->nameText = $item->getNameText().' more html text ';
-$item->fieldInputOverride = '';
-$item->helpText = $langs->transnoentities('HelpMessage');
-$item->cssClass = 'minwidth500';
-
-$item = $formSetup->newItem('SEUP_MYPARAM12');
-$item->fieldOverride = "Value forced, can't be modified";
-$item->cssClass = 'minwidth500';
-
-//$item = $formSetup->newItem('SEUP_MYPARAM13')->setAsDate();	// Not yet implemented
 
 // End of definition of parameters
 
