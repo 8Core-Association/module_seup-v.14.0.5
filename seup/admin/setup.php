@@ -120,6 +120,21 @@ $item = $formSetup->newItem('SEUP_MYPARAM2');
 $item->defaultFieldValue = 'default value';
 $item->fieldAttr['placeholder'] = 'A placeholder here';
 
+// Nextcloud configuration
+$item = $formSetup->newItem('NEXTCLOUD_URL');
+$item->defaultFieldValue = 'https://your-nextcloud.com';
+$item->fieldAttr['placeholder'] = 'https://cloud.example.com';
+$item->cssClass = 'minwidth500';
+
+$item = $formSetup->newItem('NEXTCLOUD_USERNAME');
+$item->fieldAttr['placeholder'] = 'nextcloud-username';
+$item->cssClass = 'minwidth300';
+
+$item = $formSetup->newItem('NEXTCLOUD_PASSWORD');
+$item->fieldAttr['placeholder'] = 'app-password-or-token';
+$item->fieldAttr['type'] = 'password';
+$item->cssClass = 'minwidth300';
+
 // Setup conf for selection of a simple textarea input but we replace the text of field title
 $item = $formSetup->newItem('SEUP_MYPARAM3');
 $item->nameText = $item->getNameText().' more html text ';

@@ -382,17 +382,94 @@ class Predmet_helper
      */
     public static function fetchUploadedDocuments($db, $conf, &$documentTableHTML, $langs, $caseId)
     {
-        // Get the correct folder path for this predmet
+        // Get documents from both Dolibarr ECM and Nextcloud
+        $documents = self::getCombinedDocuments($db, $conf, $caseId);
+
+        if (count($documents) > 0) {
+            $documentTableHTML = '<table class="table table-sm table-bordered">';
+            $documentTableHTML .= '<thead class="table-dark">';
+            $documentTableHTML .= '<tr>';
+            $documentTableHTML .= '<th>Naziv datoteke</th>';
+            $documentTableHTML .= '<th>Veličina</th>';
+            $documentTableHTML .= '<th>Datum</th>';
+            $documentTableHTML .= '<th>Kreirao</th>';
+            $documentTableHTML .= '<th>Izvor</th>';
+            $documentTableHTML .= '<th>Akcije</th>';
+            $documentTableHTML .= '</tr>';
+            $documentTableHTML .= '</thead>';
+            $documentTableHTML .= '<tbody>';
+
+            foreach ($documents as $doc) {
+                // Handle different document sources
+                if (isset($doc->source) && $doc->source === 'nextcloud') {
+                    $download_url = $doc->download_url;
+                    $file_size = self::formatFileSize($doc->size);
+                    $date_formatted = date('d.m.Y H:i', strtotime($doc->last_modified));
+                    $created_by = 'Nextcloud';
+                    $source_badge = '<span class="badge bg-info">Nextcloud</span>';
+                    $edit_button = $doc->edit_url ? 
+                        '<a href="' . $doc->edit_url . '" class="btn btn-outline-success btn-sm me-1" target="_blank" title="Uredi u Nextcloud"><i class="fas fa-edit"></i></a>' : '';
+                } else {
+                    // Dolibarr ECM document
+                    $relative_path = self::getPredmetFolderPath($caseId, $db);
+                    $download_url = DOL_URL_ROOT . '/document.php?modulepart=ecm&file=' . urlencode($relative_path . $doc->filename);
+                    $file_size = 'N/A';
+                    $date_formatted = dol_print_date($doc->date_c, 'dayhour');
+                    $created_by = $doc->created_by ?: 'N/A';
+                    $source_badge = '<span class="badge bg-primary">Dolibarr</span>';
+                    $edit_button = '';
+                }
+                
+                $documentTableHTML .= '<tr>';
+                $documentTableHTML .= '<td>';
+                $documentTableHTML .= '<i class="' . self::getFileIcon($doc->filename) . ' me-2"></i>';
+                $documentTableHTML .= htmlspecialchars($doc->filename);
+                if (isset($doc->tags) && !empty($doc->tags)) {
+                    $documentTableHTML .= '<br><small class="text-muted"><i class="fas fa-tags"></i> ' . htmlspecialchars($doc->tags) . '</small>';
+                }
+                $documentTableHTML .= '</td>';
+                $documentTableHTML .= '<td>' . $file_size . '</td>';
+                $documentTableHTML .= '<td>' . $date_formatted . '</td>';
+                $documentTableHTML .= '<td>' . htmlspecialchars($created_by) . '</td>';
+                $documentTableHTML .= '<td>' . $source_badge . '</td>';
+                $documentTableHTML .= '<td>';
+                $documentTableHTML .= $edit_button;
+                $documentTableHTML .= '<a href="' . $download_url . '" class="btn btn-outline-primary btn-sm" target="_blank">';
+                $documentTableHTML .= '<i class="fas fa-download"></i>';
+                $documentTableHTML .= '</a>';
+                if (isset($doc->comments_count) && $doc->comments_count > 0) {
+                    $documentTableHTML .= '<span class="badge bg-secondary ms-1" title="Komentari">' . $doc->comments_count . '</span>';
+                }
+                if (isset($doc->is_shared) && $doc->is_shared) {
+                    $documentTableHTML .= '<i class="fas fa-share-alt ms-1 text-warning" title="Dijeljeno"></i>';
+                }
+                $documentTableHTML .= '</td>';
+                $documentTableHTML .= '</tr>';
+            }
+
+            $documentTableHTML .= '</tbody>';
+            $documentTableHTML .= '</table>';
+        } else {
+            $documentTableHTML = '<div class="alert alert-info">';
+            $documentTableHTML .= '<i class="fas fa-info-circle me-2"></i>';
+            $documentTableHTML .= $langs->trans("NoDocumentsFound");
+            $documentTableHTML .= '</div>';
+        }
+    }
+
+    /**
+     * Get combined documents from both Dolibarr ECM and Nextcloud
+     */
+    public static function getCombinedDocuments($db, $conf, $caseId)
+    {
+        $allDocuments = [];
+        
+        // 1. Get documents from Dolibarr ECM
         $relative_path = self::getPredmetFolderPath($caseId, $db);
-        
-        // Try both with and without trailing slash for ECM compatibility
         $search_paths = [
-            rtrim($relative_path, '/'),  // Without trailing slash
-            $relative_path               // With trailing slash (original)
+            rtrim($relative_path, '/'),
+            $relative_path
         ];
-        
-        // Debug: Log the path we're searching for
-        dol_syslog("fetchUploadedDocuments: Searching for documents in paths: " . implode(', ', $search_paths), LOG_INFO);
         
         $sql_conditions = [];
         foreach ($search_paths as $path) {
@@ -411,60 +488,94 @@ class Predmet_helper
                 AND ef.entity = " . $conf->entity . "
                 ORDER BY ef.date_c DESC";
 
-        // Debug: Log the SQL query
-        dol_syslog("fetchUploadedDocuments SQL: " . $sql, LOG_INFO);
-        
         $resql = $db->query($sql);
-        $documents = [];
         if ($resql) {
-            $num_rows = $db->num_rows($resql);
-            dol_syslog("fetchUploadedDocuments: Found " . $num_rows . " documents", LOG_INFO);
-            
             while ($obj = $db->fetch_object($resql)) {
-                dol_syslog("fetchUploadedDocuments: Document found - " . $obj->filename . " in " . $obj->filepath, LOG_INFO);
-                $documents[] = $obj;
+                $obj->source = 'dolibarr';
+                $allDocuments[] = $obj;
             }
-        } else {
-            dol_syslog("fetchUploadedDocuments: SQL query failed - " . $db->lasterror(), LOG_ERR);
         }
-
-        if (count($documents) > 0) {
-            $documentTableHTML = '<table class="table table-sm table-bordered">';
-            $documentTableHTML .= '<thead class="table-dark">';
-            $documentTableHTML .= '<tr>';
-            $documentTableHTML .= '<th>Naziv datoteke</th>';
-            $documentTableHTML .= '<th>Veličina</th>';
-            $documentTableHTML .= '<th>Datum</th>';
-            $documentTableHTML .= '<th>Kreirao</th>';
-            $documentTableHTML .= '<th>Akcije</th>';
-            $documentTableHTML .= '</tr>';
-            $documentTableHTML .= '</thead>';
-            $documentTableHTML .= '<tbody>';
-
-            foreach ($documents as $doc) {
-                $download_url = DOL_URL_ROOT . '/document.php?modulepart=ecm&file=' . urlencode($relative_path . $doc->filename);
+        
+        // 2. Get documents from Nextcloud
+        try {
+            require_once __DIR__ . '/nextcloud_api.class.php';
+            $nextcloudApi = new NextcloudAPI($db, $conf);
+            $nextcloudFiles = $nextcloudApi->getFilesFromFolder($relative_path);
+            
+            foreach ($nextcloudFiles as $file) {
+                // Convert to object format similar to ECM
+                $fileObj = new stdClass();
+                $fileObj->filename = $file['filename'];
+                $fileObj->size = $file['size'];
+                $fileObj->last_modified = $file['last_modified'];
+                $fileObj->download_url = $file['download_url'];
+                $fileObj->edit_url = $file['edit_url'];
+                $fileObj->tags = $file['tags'];
+                $fileObj->comments_count = $file['comments_count'];
+                $fileObj->is_shared = $file['is_shared'];
+                $fileObj->source = 'nextcloud';
                 
-                $documentTableHTML .= '<tr>';
-                $documentTableHTML .= '<td>' . htmlspecialchars($doc->filename) . '</td>';
-                $documentTableHTML .= '<td>N/A</td>';
-                $documentTableHTML .= '<td>' . dol_print_date($doc->date_c, 'dayhour') . '</td>';
-                $documentTableHTML .= '<td>' . htmlspecialchars($doc->created_by ?: 'N/A') . '</td>';
-                $documentTableHTML .= '<td>';
-                $documentTableHTML .= '<a href="' . $download_url . '" class="btn btn-outline-primary btn-sm" target="_blank">';
-                $documentTableHTML .= '<i class="fas fa-download"></i>';
-                $documentTableHTML .= '</a>';
-                $documentTableHTML .= '</td>';
-                $documentTableHTML .= '</tr>';
+                $allDocuments[] = $fileObj;
             }
-
-            $documentTableHTML .= '</tbody>';
-            $documentTableHTML .= '</table>';
-        } else {
-            $documentTableHTML = '<div class="alert alert-info">';
-            $documentTableHTML .= '<i class="fas fa-info-circle me-2"></i>';
-            $documentTableHTML .= $langs->trans("NoDocumentsFound");
-            $documentTableHTML .= '</div>';
+        } catch (Exception $e) {
+            dol_syslog("Error fetching Nextcloud documents: " . $e->getMessage(), LOG_WARNING);
         }
+        
+        // Sort combined documents by date (newest first)
+        usort($allDocuments, function($a, $b) {
+            if (isset($a->date_c) && isset($b->date_c)) {
+                return $b->date_c - $a->date_c;
+            } elseif (isset($a->date_c)) {
+                return -1;
+            } elseif (isset($b->date_c)) {
+                return 1;
+            } else {
+                // Both are Nextcloud files, compare by last_modified
+                return strtotime($b->last_modified) - strtotime($a->last_modified);
+            }
+        });
+        
+        return $allDocuments;
+    }
+
+    /**
+     * Format file size in human readable format
+     */
+    public static function formatFileSize($bytes)
+    {
+        if ($bytes == 0) return '0 B';
+        
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $factor = floor(log($bytes, 1024));
+        
+        return sprintf("%.1f %s", $bytes / pow(1024, $factor), $units[$factor]);
+    }
+
+    /**
+     * Get appropriate icon for file type
+     */
+    public static function getFileIcon($filename)
+    {
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        
+        $iconMap = [
+            'pdf' => 'fas fa-file-pdf text-danger',
+            'doc' => 'fas fa-file-word text-primary',
+            'docx' => 'fas fa-file-word text-primary',
+            'xls' => 'fas fa-file-excel text-success',
+            'xlsx' => 'fas fa-file-excel text-success',
+            'ppt' => 'fas fa-file-powerpoint text-warning',
+            'pptx' => 'fas fa-file-powerpoint text-warning',
+            'jpg' => 'fas fa-file-image text-info',
+            'jpeg' => 'fas fa-file-image text-info',
+            'png' => 'fas fa-file-image text-info',
+            'gif' => 'fas fa-file-image text-info',
+            'txt' => 'fas fa-file-alt text-secondary',
+            'zip' => 'fas fa-file-archive text-dark',
+            'rar' => 'fas fa-file-archive text-dark'
+        ];
+        
+        return $iconMap[$extension] ?? 'fas fa-file text-muted';
     }
 
     /**

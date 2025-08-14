@@ -148,3 +148,21 @@ Sadrzaj=Sadrzaj
 dosjeBroj=Dosje broj
 vrijemeCuvanja=Vrijeme Čuvanja
 Opis=Opis
+
+; Nextcloud integration
+NEXTCLOUD_URL=Nextcloud URL
+NEXTCLOUD_URLTooltip=URL vašeg Nextcloud servera (npr. https://cloud.example.com)
+NEXTCLOUD_USERNAME=Nextcloud korisničko ime
+NEXTCLOUD_USERNAMETooltip=Korisničko ime za pristup Nextcloud API-ju
+NEXTCLOUD_PASSWORD=Nextcloud lozinka/token
+NEXTCLOUD_PASSWORDTooltip=App password ili API token za Nextcloud pristup
+
+; Document sources
+DocumentSource=Izvor
+NextcloudDocument=Nextcloud dokument
+DolibarrDocument=Dolibarr dokument
+EditInNextcloud=Uredi u Nextcloud
+ViewInNextcloud=Otvori u Nextcloud
+SyncWithNextcloud=Sinkroniziraj s Nextcloud
+NextcloudSyncSuccess=Uspješno sinkronizirano s Nextcloud
+NextcloudSyncError=Greška pri sinkronizaciji s Nextcloud
