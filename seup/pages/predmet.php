@@ -339,49 +339,130 @@ print '</div>';
 print '<div class="seup-tab-pane" id="tab-dokumenti">';
 print '<div class="seup-documents-header">';
 print '<h4 class="seup-documents-title"><i class="fas fa-file-alt"></i>Akti i prilozi</h4>';
+print '<div class="seup-documents-actions">';
+print '<button type="button" class="seup-btn seup-btn-secondary seup-btn-sm" id="refreshDocsBtn">';
+print '<i class="fas fa-sync-alt me-2"></i>Osvježi';
+print '</button>';
+print '<button type="button" class="seup-btn seup-btn-secondary seup-btn-sm" id="sortDocsBtn">';
+print '<i class="fas fa-sort me-2"></i>Sortiraj';
+print '</button>';
+print '</div>';
 print '</div>';
 
 // Upload section
-print '<div class="seup-upload-section">';
+print '<div class="seup-upload-zone" id="uploadZone">';
+print '<div class="seup-upload-content">';
 print '<div class="seup-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>';
-print '<div class="seup-upload-text">Kliknite za dodavanje novog dokumenta</div>';
-print '<button type="button" id="uploadTrigger" class="seup-btn seup-btn-primary">';
-print '<i class="fas fa-upload me-2"></i>Dodaj dokument';
+print '<h5 class="seup-upload-title">Dodajte novi dokument</h5>';
+print '<p class="seup-upload-description">Povucite datoteke ovdje ili kliknite za odabir</p>';
+print '<div class="seup-upload-formats">';
+print '<span class="seup-format-badge">PDF</span>';
+print '<span class="seup-format-badge">DOCX</span>';
+print '<span class="seup-format-badge">XLSX</span>';
+print '<span class="seup-format-badge">JPG</span>';
+print '<span class="seup-format-badge">PNG</span>';
+print '</div>';
+print '<button type="button" id="uploadTrigger" class="seup-btn seup-btn-primary seup-upload-btn">';
+print '<i class="fas fa-plus me-2"></i>Odaberi datoteke';
 print '</button>';
-print '<input type="file" id="documentInput" style="display: none;">';
+print '</div>';
+print '<input type="file" id="documentInput" multiple accept=".pdf,.docx,.xlsx,.doc,.xls,.jpg,.jpeg,.png" style="display: none;">';
 print '<div class="seup-upload-progress" id="uploadProgress">';
+print '<div class="seup-progress-header">';
+print '<span class="seup-progress-title">Upload u tijeku...</span>';
+print '<span class="seup-progress-percentage" id="progressPercentage">0%</span>';
+print '</div>';
 print '<div class="seup-progress-bar">';
 print '<div class="seup-progress-fill" id="progressFill"></div>';
 print '</div>';
-print '<div class="seup-progress-text" id="progressText">Uploading...</div>';
+print '<div class="seup-progress-details" id="progressDetails">Priprema datoteka...</div>';
 print '</div>';
 print '</div>';
 
 // Documents display
+print '<div class="seup-documents-container" id="documentsContainer">';
+
 if (strpos($documentTableHTML, 'NoDocumentsFound') !== false || strpos($documentTableHTML, 'alert-info') !== false) {
     print '<div class="seup-no-documents">';
-    print '<i class="fas fa-file-alt seup-no-documents-icon"></i>';
+    print '<div class="seup-no-docs-illustration">';
+    print '<i class="fas fa-folder-open"></i>';
+    print '<i class="fas fa-file-alt"></i>';
+    print '<i class="fas fa-plus"></i>';
+    print '</div>';
     print '<h5 class="seup-no-documents-title">Nema uploadanih dokumenata</h5>';
-    print '<p class="seup-no-documents-description">Dodajte prvi dokument za ovaj predmet</p>';
+    print '<p class="seup-no-documents-description">Dodajte prvi dokument za ovaj predmet koristeći upload zonu iznad</p>';
+    print '<div class="seup-no-docs-tips">';
+    print '<div class="seup-tip">';
+    print '<i class="fas fa-lightbulb"></i>';
+    print '<span>Podržani formati: PDF, DOCX, XLSX, slike</span>';
+    print '</div>';
+    print '<div class="seup-tip">';
+    print '<i class="fas fa-mouse"></i>';
+    print '<span>Povucite datoteke direktno u upload zonu</span>';
+    print '</div>';
+    print '</div>';
     print '</div>';
 } else {
-    // Convert the existing table HTML to modern design
-    $modernTableHTML = str_replace(
-        ['table table-sm table-bordered', 'btn btn-outline-primary btn-sm'],
-        ['seup-documents-table', 'seup-btn-download'],
-        $documentTableHTML
-    );
-    print $modernTableHTML;
+    // Enhanced documents table
+    print '<div class="seup-documents-list">';
+    print '<div class="seup-documents-header-bar">';
+    print '<div class="seup-docs-count">';
+    print '<i class="fas fa-file-alt me-2"></i>';
+    print '<span id="docsCount">Učitavanje...</span>';
+    print '</div>';
+    print '<div class="seup-docs-filters">';
+    print '<select class="seup-filter-select" id="filterDocType">';
+    print '<option value="">Svi tipovi</option>';
+    print '<option value="pdf">PDF dokumenti</option>';
+    print '<option value="word">Word dokumenti</option>';
+    print '<option value="excel">Excel dokumenti</option>';
+    print '<option value="image">Slike</option>';
+    print '</select>';
+    print '<select class="seup-filter-select" id="filterDocSource">';
+    print '<option value="">Svi izvori</option>';
+    print '<option value="dolibarr">Dolibarr</option>';
+    print '<option value="nextcloud">Nextcloud</option>';
+    print '</select>';
+    print '</div>';
+    print '</div>';
+    
+    // Convert table to modern card layout
+    print '<div class="seup-documents-grid" id="documentsGrid">';
+    print $documentTableHTML; // This will be converted by JavaScript
+    print '</div>';
+    print '</div>';
 }
 
-print '<div class="seup-action-buttons">';
-print '<button type="button" class="seup-btn seup-btn-secondary">';
-print '<i class="fas fa-search me-2"></i>Pretraži dokumente';
+print '</div>'; // seup-documents-container
+// Documents actions footer
+print '<div class="seup-documents-footer">';
+print '<div class="seup-docs-stats">';
+print '<div class="seup-stat-item">';
+print '<i class="fas fa-file-alt"></i>';
+print '<span>Ukupno: <strong id="totalDocs">0</strong></span>';
+print '</div>';
+print '<div class="seup-stat-item">';
+print '<i class="fas fa-hdd"></i>';
+print '<span>Veličina: <strong id="totalSize">0 MB</strong></span>';
+print '</div>';
+print '<div class="seup-stat-item">';
+print '<i class="fas fa-clock"></i>';
+print '<span>Zadnji: <strong id="lastUpload">N/A</strong></span>';
+print '</div>';
+print '</div>';
+print '<div class="seup-docs-actions">';
+print '<button type="button" class="seup-btn seup-btn-secondary seup-btn-sm" id="selectAllBtn">';
+print '<i class="fas fa-check-square me-2"></i>Odaberi sve';
 print '</button>';
-print '<button type="button" class="seup-btn seup-btn-secondary">';
-print '<i class="fas fa-sort me-2"></i>Sortiraj';
+print '<button type="button" class="seup-btn seup-btn-secondary seup-btn-sm" id="downloadSelectedBtn" disabled>';
+print '<i class="fas fa-download me-2"></i>Preuzmi odabrane';
+print '</button>';
+print '<button type="button" class="seup-btn seup-btn-secondary seup-btn-sm" id="exportListBtn">';
+print '<i class="fas fa-file-export me-2"></i>Izvoz liste';
 print '</button>';
 print '</div>';
+print '</div>';
+
 print '</div>';
 
 // Tab 3 - Preview
