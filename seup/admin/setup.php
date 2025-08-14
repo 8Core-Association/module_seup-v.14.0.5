@@ -390,18 +390,50 @@ $title = "SEUPSetup";
 
 llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', '', '', 'mod-seup page-admin');
 
+// Modern design assets
+print '<meta name="viewport" content="width=device-width, initial-scale=1">';
+print '<link rel="preconnect" href="https://fonts.googleapis.com">';
+print '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+print '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">';
+print '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">';
+print '<link href="/custom/seup/css/seup-modern.css" rel="stylesheet">';
+
 // Subheader
 $linkback = '<a href="'.($backtopage ? $backtopage : DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1').'">'.$langs->trans("BackToModuleList").'</a>';
 
-print load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
+// Custom header with modern design
+print '<div class="seup-admin-header">';
+print '<div class="seup-admin-header-content">';
+print '<div class="seup-admin-icon"><i class="fas fa-cogs"></i></div>';
+print '<div class="seup-admin-title-section">';
+print '<h1 class="seup-admin-title">' . $langs->trans($title) . '</h1>';
+print '<p class="seup-admin-subtitle">Konfigurirajte SEUP modul i Nextcloud integraciju</p>';
+print '</div>';
+print '</div>';
+print '<div class="seup-admin-actions">';
+print $linkback;
+print '</div>';
+print '</div>';
 
 // Configuration header
 $head = seupAdminPrepareHead();
-print dol_get_fiche_head($head, 'settings', $langs->trans($title), -1, "seup@seup");
+print '<div class="seup-admin-tabs">';
+print dol_get_fiche_head($head, 'settings', '', 0, 'seup@seup');
+print '</div>';
 
 // Setup page goes here
-echo '<span class="opacitymedium">'.$langs->trans("SEUPSetupPage").'</span><br><br>';
+print '<div class="seup-admin-container">';
 
+// Welcome section
+print '<div class="seup-admin-welcome">';
+print '<div class="seup-welcome-icon"><i class="fas fa-rocket"></i></div>';
+print '<div class="seup-welcome-content">';
+print '<h3>Dobrodošli u SEUP konfiguraciju</h3>';
+print '<p>Konfigurirajte osnovne parametre modula i Nextcloud integraciju za optimalno iskustvo rada.</p>';
+print '</div>';
+print '</div>';
+
+// Configuration sections
 
 /*if ($action == 'edit') {
  print $formSetup->generateOutput(true);
@@ -413,10 +445,68 @@ echo '<span class="opacitymedium">'.$langs->trans("SEUPSetupPage").'</span><br><
  print '</div>';
  }
  */
+
+// Basic Configuration Section
+print '<div class="seup-config-section">';
+print '<div class="seup-section-header">';
+print '<div class="seup-section-icon"><i class="fas fa-sliders-h"></i></div>';
+print '<h3 class="seup-section-title">Osnovne Postavke</h3>';
+print '<p class="seup-section-description">Konfigurirajte osnovne parametre SEUP modula</p>';
+print '</div>';
+print '<div class="seup-section-content">';
 if (!empty($formSetup->items)) {
 	print $formSetup->generateOutput(true);
-	print '<br>';
 }
+print '</div>';
+print '</div>';
+
+// Nextcloud Integration Section
+print '<div class="seup-config-section seup-nextcloud-section">';
+print '<div class="seup-section-header">';
+print '<div class="seup-section-icon"><i class="fab fa-cloud"></i></div>';
+print '<h3 class="seup-section-title">Nextcloud Integracija</h3>';
+print '<p class="seup-section-description">Konfigurirajte sinkronizaciju dokumenata s Nextcloud serverom</p>';
+print '</div>';
+print '<div class="seup-section-content">';
+
+// Nextcloud status indicator
+$nextcloud_url = getDolGlobalString('NEXTCLOUD_URL', '');
+$nextcloud_username = getDolGlobalString('NEXTCLOUD_USERNAME', '');
+$nextcloud_password = getDolGlobalString('NEXTCLOUD_PASSWORD', '');
+$nextcloud_enabled = getDolGlobalString('NEXTCLOUD_ENABLED', '0');
+
+$status_class = 'warning';
+$status_text = 'Nije konfigurirano';
+$status_icon = 'fa-exclamation-triangle';
+
+if (!empty($nextcloud_url) && !empty($nextcloud_username) && !empty($nextcloud_password)) {
+    if ($nextcloud_enabled) {
+        $status_class = 'success';
+        $status_text = 'Aktivno i konfigurirano';
+        $status_icon = 'fa-check-circle';
+    } else {
+        $status_class = 'info';
+        $status_text = 'Konfigurirano ali neaktivno';
+        $status_icon = 'fa-pause-circle';
+    }
+} elseif (!empty($nextcloud_url) || !empty($nextcloud_username)) {
+    $status_class = 'warning';
+    $status_text = 'Djelomično konfigurirano';
+    $status_icon = 'fa-exclamation-triangle';
+}
+
+print '<div class="seup-status-card seup-status-' . $status_class . '">';
+print '<div class="seup-status-icon"><i class="fas ' . $status_icon . '"></i></div>';
+print '<div class="seup-status-content">';
+print '<h4>Status Nextcloud Integracije</h4>';
+print '<p>' . $status_text . '</p>';
+print '</div>';
+print '</div>';
+
+print '</div>';
+print '</div>';
+
+print '</div>'; // seup-admin-container
 
 // Add JavaScript for test connection
 print '<script>
@@ -427,7 +517,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (testBtn) {
         testBtn.addEventListener("click", function() {
             this.disabled = true;
-            this.textContent = "Testing...";
+            this.innerHTML = "<i class=\'fas fa-spinner fa-spin\'></i> Testiram...";
             testResult.innerHTML = "";
             
             const formData = new FormData();
@@ -444,22 +534,412 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    testResult.innerHTML = "<div class=\'ok\'><i class=\'fa fa-check\'></i> " + data.message + "</div>";
+                    testResult.innerHTML = "<div class=\'seup-test-success\'><i class=\'fas fa-check-circle\'></i> " + data.message + "</div>";
                 } else {
-                    testResult.innerHTML = "<div class=\'error\'><i class=\'fa fa-times\'></i> " + data.error + "</div>";
+                    testResult.innerHTML = "<div class=\'seup-test-error\'><i class=\'fas fa-times-circle\'></i> " + data.error + "</div>";
                 }
             })
             .catch(error => {
-                testResult.innerHTML = "<div class=\'error\'><i class=\'fa fa-times\'></i> Connection failed</div>";
+                testResult.innerHTML = "<div class=\'seup-test-error\'><i class=\'fas fa-times-circle\'></i> Veza neuspješna</div>";
             })
             .finally(() => {
                 this.disabled = false;
-                this.textContent = "Test Connection";
+                this.innerHTML = "<i class=\'fas fa-plug\'></i> Test Connection";
             });
         });
     }
 });
 </script>';
+
+// Add custom CSS for admin page
+print '<style>
+/* SEUP Admin Page Styles */
+.seup-admin-header {
+    background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+    color: white;
+    padding: var(--space-8) var(--space-6);
+    margin: -20px -20px var(--space-6) -20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.seup-admin-header-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.seup-admin-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.seup-admin-title {
+    font-size: var(--text-3xl);
+    font-weight: var(--font-bold);
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.seup-admin-subtitle {
+    font-size: var(--text-lg);
+    margin: var(--space-2) 0 0 0;
+    opacity: 0.9;
+    font-weight: var(--font-medium);
+}
+
+.seup-admin-actions a {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    font-weight: var(--font-medium);
+    transition: all var(--transition-fast);
+    backdrop-filter: blur(10px);
+}
+
+.seup-admin-actions a:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-2px);
+}
+
+.seup-admin-tabs {
+    margin: var(--space-6) 0;
+}
+
+.seup-admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.seup-admin-welcome {
+    background: linear-gradient(135deg, var(--accent-50), var(--accent-100));
+    border: 1px solid var(--accent-200);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-6);
+    margin-bottom: var(--space-8);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.seup-welcome-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--accent-500), var(--accent-600));
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+}
+
+.seup-welcome-content h3 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+    color: var(--accent-800);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.seup-welcome-content p {
+    color: var(--accent-700);
+    margin: 0;
+    line-height: var(--leading-relaxed);
+}
+
+.seup-config-section {
+    background: white;
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: var(--space-6);
+    overflow: hidden;
+    border: 1px solid var(--neutral-200);
+}
+
+.seup-section-header {
+    background: linear-gradient(135deg, var(--secondary-50), var(--secondary-100));
+    padding: var(--space-6);
+    border-bottom: 1px solid var(--secondary-200);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.seup-section-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--secondary-500), var(--secondary-600));
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+}
+
+.seup-section-title {
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+    color: var(--secondary-900);
+    margin: 0;
+}
+
+.seup-section-description {
+    color: var(--secondary-600);
+    margin: var(--space-1) 0 0 0;
+    font-size: var(--text-sm);
+}
+
+.seup-section-content {
+    padding: var(--space-6);
+}
+
+.seup-nextcloud-section .seup-section-icon {
+    background: linear-gradient(135deg, #0082c9, #0066a1);
+}
+
+.seup-status-card {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    border: 1px solid;
+}
+
+.seup-status-success {
+    background: var(--success-50);
+    border-color: var(--success-200);
+    color: var(--success-800);
+}
+
+.seup-status-warning {
+    background: var(--warning-50);
+    border-color: var(--warning-200);
+    color: var(--warning-800);
+}
+
+.seup-status-info {
+    background: var(--primary-50);
+    border-color: var(--primary-200);
+    color: var(--primary-800);
+}
+
+.seup-status-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.seup-status-success .seup-status-icon {
+    background: var(--success-100);
+    color: var(--success-600);
+}
+
+.seup-status-warning .seup-status-icon {
+    background: var(--warning-100);
+    color: var(--warning-600);
+}
+
+.seup-status-info .seup-status-icon {
+    background: var(--primary-100);
+    color: var(--primary-600);
+}
+
+.seup-status-content h4 {
+    margin: 0 0 var(--space-1) 0;
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
+}
+
+.seup-status-content p {
+    margin: 0;
+    font-size: var(--text-sm);
+    opacity: 0.8;
+}
+
+/* Enhanced form styling */
+.form-setup table {
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--neutral-200);
+}
+
+.form-setup table tr:nth-child(even) {
+    background: var(--neutral-25);
+}
+
+.form-setup table td {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--neutral-100);
+}
+
+.form-setup table td:first-child {
+    font-weight: var(--font-medium);
+    color: var(--secondary-700);
+    width: 30%;
+}
+
+.form-setup input[type="text"],
+.form-setup input[type="password"],
+.form-setup select,
+.form-setup textarea {
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3);
+    font-size: var(--text-base);
+    transition: all var(--transition-fast);
+    background: white;
+}
+
+.form-setup input:focus,
+.form-setup select:focus,
+.form-setup textarea:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Test connection button styling */
+#testNextcloudBtn {
+    background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+    color: white;
+    border: none;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-lg);
+    font-weight: var(--font-medium);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+}
+
+#testNextcloudBtn:hover {
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+#testNextcloudBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Test result styling */
+.seup-test-success {
+    background: var(--success-50);
+    color: var(--success-800);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--success-200);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    animation: slideInUp 0.3s ease-out;
+}
+
+.seup-test-error {
+    background: var(--error-50);
+    color: var(--error-800);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--error-200);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    animation: slideInUp 0.3s ease-out;
+}
+
+/* Enhanced tab styling */
+.seup-admin-tabs .fiche_titre {
+    background: white;
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-lg);
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--neutral-200);
+}
+
+.seup-admin-tabs .tabBar {
+    background: linear-gradient(135deg, var(--neutral-50), var(--neutral-100));
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.seup-admin-tabs .tabBar a {
+    padding: var(--space-4) var(--space-6);
+    color: var(--secondary-600);
+    font-weight: var(--font-medium);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    transition: all var(--transition-fast);
+}
+
+.seup-admin-tabs .tabBar a.tabactive {
+    background: white;
+    color: var(--primary-600);
+    border-bottom: 3px solid var(--primary-500);
+}
+
+.seup-admin-tabs .tabBar a:hover {
+    background: var(--primary-50);
+    color: var(--primary-700);
+}
+
+/* Animation */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .seup-admin-header {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-4);
+    }
+    
+    .seup-admin-header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .seup-config-section {
+        margin: 0 -10px var(--space-6) -10px;
+        border-radius: var(--radius-xl);
+    }
+}
+</style>';
 
 foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 	if (!empty($myTmpObjectArray['includerefgeneration'])) {
